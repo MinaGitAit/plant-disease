@@ -7,8 +7,6 @@ import torch
 import torch.nn as nn
 import mlflow
 import sys
-import random
-from torch.utils.data import DataLoader, Subset
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from data.preprocess import get_dataloaders
@@ -74,20 +72,6 @@ def main():
     print(f"Utilisation de : {device}")
 
     train_loader, valid_loader, classes = get_dataloaders()
-
-    # --- RÉDUCTION TEMPORAIRE POUR TEST RAPIDE ---
-    SUBSET_SIZE = 500
-    train_indices = random.sample(range(len(train_loader.dataset)), SUBSET_SIZE)
-    valid_indices = random.sample(range(len(valid_loader.dataset)), 200)
-
-    train_subset = Subset(train_loader.dataset, train_indices)
-    valid_subset = Subset(valid_loader.dataset, valid_indices)
-
-    train_loader = DataLoader(train_subset, batch_size=params["batch_size"], shuffle=True)
-    valid_loader = DataLoader(valid_subset, batch_size=params["batch_size"], shuffle=False)
-    print(f"Mode test rapide : {SUBSET_SIZE} images train, 200 images valid")
-    # --- FIN RÉDUCTION TEMPORAIRE ---
-
     model = build_model(num_classes=len(classes)).to(device)
 
     criterion = nn.CrossEntropyLoss()
@@ -102,6 +86,8 @@ def main():
         mlflow.log_param("batch_size", params["batch_size"])
         mlflow.log_param("model", "resnet18_transfer_learning")
         mlflow.log_param("num_classes", len(classes))
+        mlflow.log_param("train_size", len(train_loader.dataset))
+        mlflow.log_param("valid_size", len(valid_loader.dataset))
 
         for epoch in range(params["epochs"]):
             train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
@@ -117,9 +103,11 @@ def main():
             mlflow.log_metric("valid_loss", valid_loss, step=epoch)
             mlflow.log_metric("valid_accuracy", valid_acc, step=epoch)
 
-        # Sauvegarder le modèle final
-        os.makedirs("models", exist_ok=True)
-        torch.save(model.state_dict(), "models/model.pth")
+            # Sauvegarde intermédiaire après chaque epoch (sécurité en cas de coupure)
+            os.makedirs("models", exist_ok=True)
+            torch.save(model.state_dict(), "models/model.pth")
+
+        # Log du modèle final comme artefact MLflow
         mlflow.log_artifact("models/model.pth")
 
         print("Entraînement terminé. Modèle sauvegardé dans models/model.pth")
