@@ -2,3 +2,6 @@ venv/
 __pycache__/
 *.pyc
 .env
+mlflow.db
+mlruns/
+data/test/
