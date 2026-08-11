@@ -1,0 +1,57 @@
+schema: '2.0'
+stages:
+  train:
+    cmd: python src/models/train.py
+    deps:
+    - path: data/raw
+      hash: md5
+      md5: 3a7452c7f9a406345600d2d11b2e68ed.dir
+      size: 1426945620
+      nfiles: 87867
+    - path: src/data/preprocess.py
+      hash: md5
+      md5: 577b30a1e2700f989c0b32bea002bcae
+      size: 1297
+    - path: src/models/model.py
+      hash: md5
+      md5: ac51c0303a03ab6f775c42d8fe0f9850
+      size: 1256
+    - path: src/models/train.py
+      hash: md5
+      md5: c58885748c86290b28c4ef3a0a58e47a
+      size: 4410
+    params:
+      params.yaml:
+        train.batch_size: 32
+        train.epochs: 5
+        train.learning_rate: 0.001
+    outs:
+    - path: models/model.pth
+      hash: md5
+      md5: e3a074a0599327ca11320b7883307a90
+      size: 44854795
+  evaluate:
+    cmd: python src/models/evaluate.py
+    deps:
+    - path: data/raw
+      hash: md5
+      md5: 3a7452c7f9a406345600d2d11b2e68ed.dir
+      size: 1426945620
+      nfiles: 87867
+    - path: models/model.pth
+      hash: md5
+      md5: e3a074a0599327ca11320b7883307a90
+      size: 44854795
+    - path: src/models/evaluate.py
+      hash: md5
+      md5: e6367908f90c6896c749c660bb46043c
+      size: 3311
+    outs:
+    - path: metrics/classification_report.txt
+      hash: md5
+      md5: b152e41374e607ed3c149879ebb80150
+      size: 3910
+    - path: metrics/confusion_matrix.png
+      hash: md5
+      md5: 2205ca9fddffc3008694e0c5b50b49a6
+      size: 390369

@@ -1,0 +1,26 @@
+stages:
+  train:
+    cmd: python src/models/train.py
+    deps:
+      - src/models/train.py
+      - src/models/model.py
+      - src/data/preprocess.py
+      - data/raw
+    params:
+      - train.epochs
+      - train.learning_rate
+      - train.batch_size
+    outs:
+      - models/model.pth
+
+  evaluate:
+    cmd: python src/models/evaluate.py
+    deps:
+      - src/models/evaluate.py
+      - models/model.pth
+      - data/raw
+    metrics:
+      - metrics/classification_report.txt:
+          cache: false
+    outs:
+      - metrics/confusion_matrix.png
