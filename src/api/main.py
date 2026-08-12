@@ -4,6 +4,7 @@ os.environ['SSL_CERT_FILE'] = certifi.where()
 
 import sys
 import io
+import json
 import torch
 from PIL import Image
 from torchvision import transforms
@@ -14,9 +15,9 @@ from models.model import build_model
 
 IMG_SIZE = (224, 224)
 
-# Liste des classes, dans le MÊME ORDRE que celui utilisé pendant l'entraînement
-# (ImageFolder trie les dossiers par ordre alphabétique, donc on peut la reconstruire ainsi)
-CLASSES = sorted(os.listdir("data/raw/train"))
+# Charger la liste des classes depuis un fichier leger (au lieu de lister data/raw/train)
+with open("models/classes.json") as f:
+    CLASSES = json.load(f)
 
 app = FastAPI(title="Plant Disease Prediction API")
 
