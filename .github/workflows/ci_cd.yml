@@ -23,7 +23,16 @@ jobs:
       - name: Installer les dependances
         run: |
           pip install -r requirements-api.txt
-          pip install pytest httpx
+          pip install pytest httpx "dvc[gdrive]"
+
+      - name: Configurer l'authentification DVC
+        run: |
+          echo '${{ secrets.GDRIVE_SA_KEY }}' > gdrive_sa_key.json
+          dvc remote modify storage --local gdrive_use_service_account true
+          dvc remote modify storage --local gdrive_service_account_json_file_path gdrive_sa_key.json
+
+      - name: Recuperer le modele depuis DVC
+        run: dvc pull models/model.pth models/classes.json
 
       - name: Lancer les tests unitaires (modele + API)
         run: pytest tests/test_model.py tests/test_api.py -v
@@ -41,6 +50,14 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Installer DVC et recuperer le modele
+        run: |
+          pip install "dvc[gdrive]"
+          echo '${{ secrets.GDRIVE_SA_KEY }}' > gdrive_sa_key.json
+          dvc remote modify storage --local gdrive_use_service_account true
+          dvc remote modify storage --local gdrive_service_account_json_file_path gdrive_sa_key.json
+          dvc pull models/model.pth models/classes.json
 
       - name: Build et push de l'image Docker
         uses: docker/build-push-action@v6
