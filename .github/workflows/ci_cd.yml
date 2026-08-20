@@ -32,7 +32,7 @@ jobs:
           dvc remote modify storage --local gdrive_service_account_json_file_path gdrive_sa_key.json
 
       - name: Recuperer le modele depuis DVC
-        run: dvc pull models/model.pth models/classes.json
+        run: dvc pull models/model.pth 
 
       - name: Lancer les tests unitaires (modele + API)
         run: pytest tests/test_model.py tests/test_api.py -v
