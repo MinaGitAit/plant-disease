@@ -69,4 +69,3 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/plant-disease-api:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/plant-disease-api:${{ github.sha }}
-            
