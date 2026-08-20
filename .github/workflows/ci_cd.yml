@@ -57,7 +57,7 @@ jobs:
           echo '${{ secrets.GDRIVE_SA_KEY }}' > gdrive_sa_key.json
           dvc remote modify storage --local gdrive_use_service_account true
           dvc remote modify storage --local gdrive_service_account_json_file_path gdrive_sa_key.json
-          dvc pull models/model.pth models/classes.json
+          dvc pull models/model.pth 
 
       - name: Build et push de l'image Docker
         uses: docker/build-push-action@v6
