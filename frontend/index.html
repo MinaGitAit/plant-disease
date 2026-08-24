@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feuille — Diagnostic des maladies agricoles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #131d16;
+    --panel: #1b2820;
+    --panel-2: #213026;
+    --line: #2e4033;
+    --leaf: #8fc47f;
+    --leaf-dim: #587a51;
+    --rust: #e08a3c;
+    --rust-dim: #7a5330;
+    --paper: #eee9dd;
+    --muted: #93a292;
+    --muted-2: #6c7a6a;
+    --radius: 3px;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(143,196,127,0.07), transparent),
+      var(--bg);
+    color: var(--paper);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  }
+
+  a { color: inherit; }
+  ::selection{ background: var(--leaf); color: #10190f; }
+
+  :focus-visible{
+    outline: 2px solid var(--leaf);
+    outline-offset: 3px;
+  }
+
+  .wrap{ max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+
+  /* ---------- NAV ---------- */
+  nav.topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 26px 32px;
+    max-width: 1180px; margin: 0 auto;
+  }
+  .brand{
+    display:flex; align-items:baseline; gap:10px;
+    font-family:'Fraunces', serif; font-size: 21px; font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .brand .dot{ width:7px; height:7px; border-radius:50%; background: var(--leaf); display:inline-block; box-shadow: 0 0 10px var(--leaf); }
+  .navlinks{ display:flex; gap: 30px; font-size: 13px; color: var(--muted); }
+  .navlinks a{ text-decoration:none; transition: color .2s; }
+  .navlinks a:hover{ color: var(--paper); }
+
+  /* ---------- HERO ---------- */
+  .hero{ padding: 40px 0 30px; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--leaf); margin: 0 0 18px; display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{ content:''; width:22px; height:1px; background: var(--leaf-dim); }
+
+  h1.title{
+    font-family:'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(38px, 5.4vw, 68px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    margin: 0 0 22px;
+    max-width: 780px;
+  }
+  h1.title em{
+    font-style: italic; font-weight: 400; color: var(--leaf);
+  }
+  .lede{
+    font-size: 16px; line-height: 1.65; color: var(--muted);
+    max-width: 480px; margin: 0 0 46px;
+  }
+
+  /* ---------- CONSOLE (signature element) ---------- */
+  .console-grid{
+    display:grid; grid-template-columns: 1.05fr 0.95fr; gap: 22px;
+    margin-bottom: 90px;
+  }
+  @media (max-width: 880px){ .console-grid{ grid-template-columns: 1fr; } }
+
+  .panel{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .panel-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--line);
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted-2);
+  }
+  .panel-head .lights{ display:flex; gap:6px; }
+  .panel-head .lights span{ width:6px; height:6px; border-radius:50%; background: var(--line); }
+
+  /* upload zone */
+  .drop{
+    position: relative;
+    min-height: 360px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding: 30px;
+    cursor: pointer;
+    background: var(--panel-2);
+    transition: background .2s;
+  }
+  .drop:hover{ background: #263728; }
+  .drop.has-image{ padding: 0; background: #0d130f; }
+  .drop input{ display:none; }
+
+  .drop-icon{
+    width: 46px; height: 46px; margin-bottom: 18px;
+    border: 1px solid var(--line); border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--leaf-dim);
+  }
+  .drop-label{ font-size: 14.5px; color: var(--paper); margin-bottom: 6px; }
+  .drop-sub{ font-family:'JetBrains Mono', monospace; font-size: 11px; color: var(--muted-2); letter-spacing: .02em; }
+
+  .drop img{
+    width:100%; height: 100%; min-height: 360px; object-fit: cover;
+    display:block;
+  }
+
+  .scanline{
+    position:absolute; left:0; right:0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--leaf) 20%, #d7f5c8 50%, var(--leaf) 80%, transparent);
+    box-shadow: 0 0 16px 2px rgba(143,196,127,0.7);
+    top: 0; opacity: 0;
+    pointer-events: none;
+  }
+  .scanline.active{
+    opacity: 1;
+    animation: scan 1.6s ease-in-out infinite;
+  }
+  @keyframes scan{
+    0%{ top: 4%; }
+    50%{ top: 94%; }
+    100%{ top: 4%; }
+  }
+
+  .reset-btn{
+    position:absolute; top:12px; right:12px;
+    background: rgba(19,29,22,0.85); border: 1px solid var(--line);
+    color: var(--paper); width: 30px; height:30px; border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size: 15px; line-height:1;
+    backdrop-filter: blur(4px);
+  }
+  .reset-btn:hover{ border-color: var(--leaf); color: var(--leaf); }
+
+  /* readout panel */
+  .readout-body{ padding: 22px; min-height: 360px; display:flex; flex-direction:column; }
+
+  .log{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--muted);
+    flex:1;
+    display:flex; flex-direction:column; gap: 9px;
+  }
+  .log-line{
+    opacity:0; transform: translateY(4px);
+    animation: rise .35s ease forwards;
+  }
+  .log-line .tag{ color: var(--leaf-dim); margin-right: 8px; }
+  @keyframes rise{ to{ opacity:1; transform:none; } }
+
+  .log-empty{
+    color: var(--muted-2); font-family:'JetBrains Mono', monospace; font-size: 12.5px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .log-empty .blinker{
+    width:7px; height:14px; background: var(--leaf-dim);
+    animation: blink 1.1s steps(1) infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .result{
+    border-top: 1px solid var(--line);
+    margin-top: 18px; padding-top: 18px;
+  }
+  .result .class-label{
+    font-family:'Fraunces', serif; font-size: 22px; font-weight: 500;
+    color: var(--paper); margin-bottom: 4px; letter-spacing: -0.01em;
+  }
+  .result .culture-label{
+    font-family:'JetBrains Mono', monospace; font-size: 11px; color: var(--muted-2);
+    text-transform: uppercase; letter-spacing: .08em; margin-bottom: 20px;
+  }
+
+  .meter-row{ display:flex; align-items:center; gap: 14px; }
+  .meter{
+    flex:1; height: 8px; background: var(--panel-2);
+    border: 1px solid var(--line); border-radius: 2px;
+    display:flex; gap: 2px; padding: 2px; overflow:hidden;
+  }
+  .meter span{
+    flex:1; background: var(--line); border-radius: 1px;
+  }
+  .meter span.on{ background: var(--leaf); }
+  .meter span.on.warn{ background: var(--rust); }
+  .meter-value{
+    font-family:'JetBrains Mono', monospace; font-size: 15px; font-weight: 500;
+    color: var(--leaf); min-width: 56px; text-align:right;
+  }
+  .meter-value.warn{ color: var(--rust); }
+
+  .status-pill{
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing:.08em; text-transform:uppercase;
+    padding: 5px 11px; border-radius: 20px; margin-top: 16px;
+    border: 1px solid var(--leaf-dim); color: var(--leaf);
+  }
+  .status-pill.warn{ border-color: var(--rust-dim); color: var(--rust); }
+  .status-pill::before{ content:''; width:6px; height:6px; border-radius:50%; background: currentColor; }
+
+  .error-box{
+    border: 1px solid var(--rust-dim); background: rgba(224,138,60,0.08);
+    color: var(--rust); font-family:'JetBrains Mono', monospace; font-size: 12px;
+    padding: 12px 14px; border-radius: var(--radius); margin-top: auto;
+  }
+
+  /* ---------- PIPELINE ---------- */
+  .section-head{ margin-bottom: 40px; }
+  .section-head h2{
+    font-family:'Fraunces', serif; font-weight: 500; font-size: 30px;
+    margin: 0 0 10px; letter-spacing: -0.01em;
+  }
+  .section-head p{ color: var(--muted); font-size: 14.5px; max-width: 480px; margin:0; }
+
+  .pipeline{
+    display:grid; grid-template-columns: repeat(5, 1fr);
+    border: 1px solid var(--line); border-radius: var(--radius);
+    overflow:hidden; margin-bottom: 100px;
+  }
+  @media (max-width: 900px){ .pipeline{ grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px){ .pipeline{ grid-template-columns: 1fr; } }
+
+  .pstep{
+    padding: 26px 20px; background: var(--panel);
+    border-right: 1px solid var(--line);
+    position: relative;
+  }
+  .pipeline .pstep:last-child{ border-right:none; }
+  .pstep .num{
+    font-family:'JetBrains Mono', monospace; font-size: 11px; color: var(--leaf-dim);
+    margin-bottom: 14px;
+  }
+  .pstep h3{
+    font-size: 14.5px; font-weight: 600; margin: 0 0 8px; color: var(--paper);
+  }
+  .pstep p{
+    font-size: 12.5px; line-height: 1.55; color: var(--muted); margin:0;
+  }
+
+  /* ---------- STACK ---------- */
+  .stack-section{ margin-bottom: 90px; }
+  .chips{ display:flex; flex-wrap:wrap; gap: 10px; }
+  .chip{
+    font-family:'JetBrains Mono', monospace; font-size: 12px;
+    border: 1px solid var(--line); color: var(--muted);
+    padding: 8px 14px; border-radius: 20px;
+    transition: border-color .2s, color .2s;
+  }
+  .chip:hover{ border-color: var(--leaf-dim); color: var(--paper); }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    border-top: 1px solid var(--line);
+    padding: 28px 0 40px;
+    display:flex; align-items:center; justify-content:space-between;
+    font-family:'JetBrains Mono', monospace; font-size: 11.5px; color: var(--muted-2);
+  }
+  footer a{ text-decoration:none; color: var(--muted); }
+  footer a:hover{ color: var(--leaf); }
+
+  @media (max-width: 640px){
+    .wrap{ padding: 0 20px; }
+    nav.topbar{ padding: 20px; }
+    .navlinks{ display:none; }
+    footer{ flex-direction:column; gap:10px; align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="brand"><span class="dot"></span>Feuille</div>
+  <div class="navlinks">
+    <a href="#diagnostic">Diagnostic</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#stack">Stack</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <header class="hero" id="diagnostic">
+    <p class="eyebrow">Pathologie végétale · Inférence en temps réel</p>
+    <h1 class="title">Une feuille en dit<br><em>plus qu'un diagnostic.</em></h1>
+    <p class="lede">Déposez la photo d'une feuille. Un modèle ResNet18, entraîné sur 38 classes de cultures et de maladies, l'examine et renvoie un diagnostic en quelques secondes.</p>
+
+    <div class="console-grid">
+
+      <div class="panel">
+        <div class="panel-head">
+          <span>01 · Échantillon</span>
+          <div class="lights"><span></span><span></span><span></span></div>
+        </div>
+        <div class="drop" id="dropZone" tabindex="0" role="button" aria-label="Déposer ou choisir une image de feuille">
+          <input type="file" id="fileInput" accept="image/*">
+          <div id="dropPlaceholder">
+            <div class="drop-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v13m0-13 4 4m-4-4-4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            </div>
+            <div class="drop-label">Glissez une image, ou cliquez pour parcourir</div>
+            <div class="drop-sub">JPG · PNG — feuille isolée de préférence</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span>02 · Lecture du modèle</span>
+          <div class="lights"><span></span><span></span><span></span></div>
+        </div>
+        <div class="readout-body">
+          <div class="log" id="logArea">
+            <div class="log-empty"><span class="blinker"></span>En attente d'un échantillon…</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <section id="pipeline">
+    <div class="section-head">
+      <h2>Ce qui se passe entre la photo et la réponse</h2>
+      <p>Le modèle affiché ici est servi par une chaîne MLOps complète, du versionning des données au déploiement.</p>
+    </div>
+    <div class="pipeline">
+      <div class="pstep">
+        <div class="num">01</div>
+        <h3>Données</h3>
+        <p>87k images, 38 classes, versionnées avec DVC.</p>
+      </div>
+      <div class="pstep">
+        <div class="num">02</div>
+        <h3>Entraînement</h3>
+        <p>ResNet18, transfer learning, suivi via MLflow.</p>
+      </div>
+      <div class="pstep">
+        <div class="num">03</div>
+        <h3>Validation</h3>
+        <p>94,4 % d'exactitude, F1 macro et matrice de confusion.</p>
+      </div>
+      <div class="pstep">
+        <div class="num">04</div>
+        <h3>Empaquetage</h3>
+        <p>API FastAPI conteneurisée avec Docker.</p>
+      </div>
+      <div class="pstep">
+        <div class="num">05</div>
+        <h3>Livraison</h3>
+        <p>CI/CD GitHub Actions, déploiement continu.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="stack-section" id="stack">
+    <div class="section-head">
+      <h2>Sous le capot</h2>
+      <p>Chaque brique a un rôle précis dans la reproductibilité du pipeline.</p>
+    </div>
+    <div class="chips">
+      <span class="chip">Python</span>
+      <span class="chip">PyTorch</span>
+      <span class="chip">ResNet18</span>
+      <span class="chip">DVC</span>
+      <span class="chip">MLflow</span>
+      <span class="chip">FastAPI</span>
+      <span class="chip">Docker</span>
+      <span class="chip">GitHub Actions</span>
+      <span class="chip">Railway</span>
+    </div>
+  </section>
+
+  <footer>
+    <span>Feuille — projet de fin d'année, pipeline MLOps</span>
+    <a href="https://github.com/MinaGitAit/plant-disease" target="_blank" rel="noopener">github.com/MinaGitAit/plant-disease</a>
+  </footer>
+
+</div>
+
+<script>
+  // -----------------------------------------------------------------
+  // Remplacez cette valeur par l'URL de votre API déployée sur Railway
+  // -----------------------------------------------------------------
+  const API_URL = "https://plant-disease-api-production-fb31.up.railway.app";
+
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const logArea = document.getElementById('logArea');
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' ') fileInput.click(); });
+
+  ['dragover','dragenter'].forEach(evt => dropZone.addEventListener(evt, (e) => {
+    e.preventDefault(); dropZone.style.background = '#263728';
+  }));
+  ['dragleave','drop'].forEach(evt => dropZone.addEventListener(evt, (e) => {
+    e.preventDefault(); dropZone.style.background = '';
+  }));
+  dropZone.addEventListener('drop', (e) => {
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) handleFile(file);
+  });
+
+  function renderImage(file){
+    const url = URL.createObjectURL(file);
+    dropZone.classList.add('has-image');
+    dropZone.innerHTML = `
+      <img src="${url}" alt="Feuille analysée">
+      <div class="scanline active" id="scanline"></div>
+      <button class="reset-btn" id="resetBtn" aria-label="Choisir une autre image">×</button>
+    `;
+    document.getElementById('resetBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      resetZone();
+    });
+  }
+
+  function resetZone(){
+    dropZone.classList.remove('has-image');
+    dropZone.innerHTML = `
+      <input type="file" id="fileInput" accept="image/*">
+      <div class="drop-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v13m0-13 4 4m-4-4-4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      </div>
+      <div class="drop-label">Glissez une image, ou cliquez pour parcourir</div>
+      <div class="drop-sub">JPG · PNG — feuille isolée de préférence</div>
+    `;
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) handleFile(file);
+    });
+    logArea.innerHTML = `<div class="log-empty"><span class="blinker"></span>En attente d'un échantillon…</div>`;
+  }
+
+  function logLine(tag, text, delay){
+    const div = document.createElement('div');
+    div.className = 'log-line';
+    div.style.animationDelay = delay + 'ms';
+    div.innerHTML = `<span class="tag">${tag}</span>${text}`;
+    logArea.appendChild(div);
+  }
+
+  async function handleFile(file){
+    renderImage(file);
+    logArea.innerHTML = '';
+    logLine('&gt;', 'Chargement de l\'image…', 0);
+    logLine('&gt;', 'Envoi au modèle ResNet18…', 250);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try{
+      const response = await fetch(`${API_URL}/predict`, { method: 'POST', body: formData });
+
+      const scanline = document.getElementById('scanline');
+      if (!response.ok){
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.detail || `Erreur ${response.status}`);
+      }
+      const data = await response.json();
+
+      setTimeout(() => {
+        if (scanline) scanline.classList.remove('active');
+        logLine('&gt;', 'Inférence terminée.', 0);
+        showResult(data);
+      }, 900);
+
+    } catch(err){
+      const scanline = document.getElementById('scanline');
+      if (scanline) scanline.classList.remove('active');
+      logLine('!', 'Échec de l\'analyse.', 0);
+      const box = document.createElement('div');
+      box.className = 'error-box';
+      box.textContent = err.message || 'Impossible de contacter l\'API. Vérifiez qu\'elle est bien démarrée.';
+      logArea.appendChild(box);
+    }
+  }
+
+  function formatClassName(raw){
+    const [culture, ...rest] = raw.split('___');
+    const disease = rest.join(' ').replace(/_/g, ' ');
+    return {
+      culture: culture.replace(/_/g, ' '),
+      disease: disease || 'Feuille saine'
+    };
+  }
+
+  function showResult(data){
+    const { culture, disease } = formatClassName(data.predicted_class);
+    const confidence = data.confidence;
+    const isHealthy = /healthy/i.test(data.predicted_class);
+    const warn = !isHealthy;
+
+    const segments = 20;
+    const filled = Math.round((confidence / 100) * segments);
+    let meterHTML = '';
+    for(let i = 0; i < segments; i++){
+      meterHTML += `<span class="${i < filled ? 'on' + (warn ? ' warn' : '') : ''}"></span>`;
+    }
+
+    const result = document.createElement('div');
+    result.className = 'result';
+    result.innerHTML = `
+      <div class="culture-label">${culture}</div>
+      <div class="class-label">${disease}</div>
+      <div class="meter-row">
+        <div class="meter">${meterHTML}</div>
+        <div class="meter-value${warn ? ' warn' : ''}">${confidence.toFixed(1)}%</div>
+      </div>
+      <div class="status-pill${warn ? ' warn' : ''}">${warn ? 'Anomalie détectée' : 'Feuille saine'}</div>
+    `;
+    logArea.appendChild(result);
+  }
+</script>
+
+</body>
+</html>
