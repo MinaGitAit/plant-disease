@@ -9,6 +9,7 @@ import torch
 from PIL import Image
 from torchvision import transforms
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from models.model import build_model
@@ -20,6 +21,14 @@ with open("models/classes.json") as f:
     CLASSES = json.load(f)
 
 app = FastAPI(title="Plant Disease Prediction API")
+
+# Autoriser les requetes venant d'un autre domaine (ex: le frontend sur Netlify)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Variables globales pour le modèle (chargé une seule fois au démarrage)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
