@@ -77,4 +77,6 @@ async def predict(file: UploadFile = File(...)):
     return {
         "predicted_class": predicted_class,
         "confidence": round(confidence.item() * 100, 2)
+                "model_version": "v1.1"                              
+           "model_version": "v1.1" 
     }
